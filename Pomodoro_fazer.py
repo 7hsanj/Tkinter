@@ -17,8 +17,20 @@ class Pomodoro:
         self.style = Style(theme="morph")
         self.style.theme_use()
 
+        self.temporizador_ativo = True
+        self.tempo_de_trabalho = 25*60
+        self.tempo_de_pausa_curta = 5*60
+        self.tempo_de_pausa_longa = 15*60
+
+        self.pomodoro_feitos = 1
+
+        self.pausa = False
+
+        self.tempo_atual = self.tempo_de_trabalho
+
+        self.Mostrar_tempo()
         self.temporizador = tk.Label(
-            self.root, text='20:00', font=('Arial', 80))
+            self.root, text='{0}:{1}'.format(self.minutos, self.segundos), font=('Arial', 80))
         self.temporizador.pack(pady=5)
 
         self.start_button = ttk.Button(
@@ -29,20 +41,22 @@ class Pomodoro:
             self.root, text="Parar tempo", command=self.Parar_tempo, state=tk.DISABLED)
         self.stop_button.pack(pady=5)
 
-        self.temporizador_ativo = True
-        self.tempo_de_trabalho = 2
-        self.tempo_de_pausa_curta = 5
-
-        self.pausa = False
-
-        self.tempo_atual = self.tempo_de_trabalho
-
         self.root.mainloop()
+
+    def Mostrar_tempo(self):
+        self.minutos = self.tempo_atual//60
+        self.segundos = self.tempo_atual-self.minutos*60
 
     def Parar_tempo(self):
         self.stop_button.config(state=tk.DISABLED)
         self.start_button.config(state=tk.NORMAL)
         self.temporizador_ativo = False
+
+    def Iniciar_tempo(self):
+        self.start_button.config(state=tk.DISABLED)
+        self.stop_button.config(state=tk.NORMAL)
+        self.temporizador_ativo = True
+        self.Atualizar_tempo()
 
     def Atualizar_tempo(self):
         if self.tempo_atual <= 0:
@@ -50,28 +64,30 @@ class Pomodoro:
             self.Fim_de_tempo()
         if self.temporizador_ativo:
             self.tempo_atual -= 1
-            minutos = self.tempo_atual//60
-            segundos = self.tempo_atual-minutos*60
+            self.Mostrar_tempo()
             self.temporizador.config(text='{0}:{1}'.format(
-                minutos, segundos), font=('Arial', 80))
+                self.minutos, self.segundos), font=('Arial', 80))
             self.root.after(1000, self.Atualizar_tempo)
-
-    def Iniciar_tempo(self):
-        self.temporizador_ativo = True
-        self.start_button.config(state=tk.DISABLED)
-        self.stop_button.config(state=tk.NORMAL)
-        self.Atualizar_tempo()
 
     def Fim_de_tempo(self):
         if self.pausa:
             self.pausa = False
             self.temporizador.config(
-                text='Hora de trabalhar!', font=('Arial', 40))
-
+                text='Hora de trabalhar!', font=('Arial', 35))
+            self.tempo_atual = self.tempo_de_trabalho
         else:
             self.pausa = True
-            self.temporizador.config(text='Hora da pausa!', font=('Arial', 40))
-            self.tempo_atual = self.tempo_de_pausa_curta
+            if self.pomodoro_feitos == 4:
+                self.temporizador.config(
+                    text='Hora de uma grande pausa!', font=('Arial', 20))
+                self.tempo_atual = self.tempo_de_pausa_longa
+                self.pomodoro_feitos = 1
+            else:
+                self.temporizador.config(
+                    text='Hora da pausa!', font=('Arial', 40))
+                self.tempo_atual = self.tempo_de_pausa_curta
+                self.pomodoro_feitos += 1
+        print(self.pomodoro_feitos)
 
 
 Pomodoro()
