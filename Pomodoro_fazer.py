@@ -1,6 +1,6 @@
 # Escolher tempos (FEITO)
-# Fazer com que mudar o tempo apenas afete diferença e não dar só set
-# Mostrar tempo total trabalhado
+# Fazer com que mudar o tempo apenas afete diferença e não dar só set (FEITO?)
+# Mostrar tempo total trabalhado (Feito, mas só sem fechar aplicação)
 # Mostrar tempo por disciplina
 # Matplotlib para guardar tempo trabalhado ao longo de dias, etc.
 # Guardar Dados que duram depois de fechar o programa
@@ -36,6 +36,9 @@ class Pomodoro:
 
         self.pausa = False
         self.pomodoro_feitos = 1
+        self.temporizador_ativo = False
+        self.tempo_passado = 0
+        self.tempo_passado_total = 0
 
         self.Criar_Widgets()
         self.Tempo_escolhido_trabalho()
@@ -67,6 +70,11 @@ class Pomodoro:
         self.choose_button = ttk.Button(
             self.root, text='Escolher tempo', command=self.Escolher_tempo)
         self.choose_button.place(relx=0.8, rely=0.9, anchor='center')
+
+        # Tempo Total
+        self.tempo_total = tk.Label(
+            self.root, text='Tempo total trabalhado: {0} minutos'.format(self.tempo_passado_total), font=('Arial', 10))
+        self.tempo_total.place(relx=0.3, rely=0.9, anchor='center')
 
         # Escolhas
         self.label_escolher = tk.Label(
@@ -104,6 +112,8 @@ class Pomodoro:
         self.main.pack_forget()
         self.choose_button.place_forget()
         self.back_button.place(relx=0.8, rely=0.9, anchor='center')
+        self.temporizador_ativo_antes = self.temporizador_ativo
+        self.Parar_tempo()
 
         self.escolher.pack()
 
@@ -112,23 +122,25 @@ class Pomodoro:
         self.escolher.pack_forget()
         self.back_button.place_forget()
         self.choose_button.place(relx=0.8, rely=0.9, anchor='center')
+        if self.temporizador_ativo_antes == True:
+            self.Iniciar_tempo()
 
     def Tempo_escolhido_trabalho(self, *args):
         self.tempo_de_trabalho = self.intvar_trabalho.get()*60
         if not self.pausa:
-            self.tempo_atual = self.tempo_de_trabalho
+            self.tempo_atual = self.tempo_de_trabalho-self.tempo_passado
         self.Mostrar_tempo()
 
     def Tempo_escolhido_curta(self, *args):
         self.tempo_de_pausa_curta = self.intvar_pausa_curta.get()*60
         if self.pausa and not self.pomodoro_feitos == 4:
-            self.tempo_atual = self.tempo_de_pausa_curta
+            self.tempo_atual = self.tempo_de_pausa_curta-self.tempo_passado
         self.Mostrar_tempo()
 
     def Tempo_escolhido_longa(self, *args):
         self.tempo_de_pausa_longa = self.intvar_pausa_longa.get()*60
         if self.pausa and self.pomodoro_feitos == 1:
-            self.tempo_atual = self.tempo_de_pausa_longa
+            self.tempo_atual = self.tempo_de_pausa_longa-self.tempo_passado
         self.Mostrar_tempo()
 
     def Mostrar_tempo(self):
@@ -154,17 +166,24 @@ class Pomodoro:
             self.Fim_de_tempo()
         if self.temporizador_ativo:
             self.tempo_atual -= 1
+            self.tempo_passado += 1
+            # print(self.tempo_passado)
             self.Mostrar_tempo()
             self.root.after(1, self.Atualizar_tempo)
 
     def Fim_de_tempo(self):
         if self.pausa:
+            self.tempo_passado = 0
             self.pausa = False
             self.temporizador.config(
                 text='Hora de trabalhar!', font=('Arial', 35))
             self.tempo_atual = self.tempo_de_trabalho
         else:
             self.pausa = True
+            self.tempo_passado_total += self.tempo_passado
+            self.tempo_passado = 0
+            self.tempo_total.config(
+                text='Tempo total trabalhado: {0} minutos'.format(self.tempo_passado_total//60))
             if self.pomodoro_feitos == 4:
                 self.temporizador.config(
                     text='Hora de uma grande pausa!', font=('Arial', 20))
