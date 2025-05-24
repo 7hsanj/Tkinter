@@ -1,18 +1,10 @@
 # Escolher tempos (FEITO)
 # Fazer com que mudar o tempo apenas afete diferença e não dar só set (FEITO?)
-# Mostrar tempo total trabalhado (FEITO)
-
-# Outra classe para file handling (FEITO)
-# Tempo total no ficheiro (FEITO)
-# Mudar variaveis do tempo após fechar (FEITO)
-
-# Tempo por disciplina
-# Tempo por dias
-
+# Mostrar tempo total trabalhado (Feito, mas só sem fechar aplicação)
+# Mostrar tempo por disciplina
 # Matplotlib para guardar tempo trabalhado ao longo de dias, etc.
 # Guardar Dados que duram depois de fechar o programa
 # Colocar alarme para fim do tempo
-
 import tkinter as tk
 from ttkbootstrap import ttk, Style
 
@@ -80,10 +72,8 @@ class Pomodoro:
         self.choose_button.place(relx=0.8, rely=0.9, anchor='center')
 
         # Tempo Total
-        self.tempo_passado_anterior = FileHandling().Reading()
-
         self.tempo_total = tk.Label(
-            self.root, text='Tempo total trabalhado: {0} minutos'.format(self.tempo_passado_anterior), font=('Arial', 10))
+            self.root, text='Tempo total trabalhado: {0} minutos'.format(self.tempo_passado_total), font=('Arial', 10))
         self.tempo_total.place(relx=0.3, rely=0.9, anchor='center')
 
         # Escolhas
@@ -177,9 +167,6 @@ class Pomodoro:
         if self.temporizador_ativo:
             self.tempo_atual -= 1
             self.tempo_passado += 1
-            if not self.pausa:
-                global tempo_passado_file
-                tempo_passado_file = self.tempo_passado
             # print(self.tempo_passado)
             self.Mostrar_tempo()
             self.root.after(1, self.Atualizar_tempo)
@@ -194,13 +181,9 @@ class Pomodoro:
         else:
             self.pausa = True
             self.tempo_passado_total += self.tempo_passado
-            global tempo_passado_total_file
-            tempo_passado_total_file = self.tempo_passado_total
             self.tempo_passado = 0
-            global tempo_passado_file
-            tempo_passado_file = self.tempo_passado
             self.tempo_total.config(
-                text='Tempo total trabalhado: {0} minutos'.format(self.tempo_passado_anterior+self.tempo_passado_total//60))
+                text='Tempo total trabalhado: {0} minutos'.format(self.tempo_passado_total//60))
             if self.pomodoro_feitos == 4:
                 self.temporizador.config(
                     text='Hora de uma grande pausa!', font=('Arial', 20))
@@ -214,28 +197,4 @@ class Pomodoro:
         print(self.pomodoro_feitos)
 
 
-class FileHandling:
-    def Closing(self):
-        try:
-            self.ficheiro = open('tempos.txt', 'x')
-        except FileExistsError:
-            pass
-        self.ficheiro = open('tempos.txt', 'a')
-        try:
-            self.tempo_total = tempo_passado_total_file//60+tempo_passado_file//60
-        except:
-            self.tempo_total = tempo_passado_file//60
-        self.ficheiro.write(str(self.tempo_total)+'\n')
-
-    def Reading(self):
-        self.ficheiro = open('tempos.txt', 'r')
-        self.tempos = self.ficheiro.read().splitlines()
-        self.soma = 0
-        # print(self.tempos)
-        for x in self.tempos:
-            self.soma += int(x)
-        return self.soma
-
-
 Pomodoro()
-FileHandling().Closing()
